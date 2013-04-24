@@ -17,49 +17,64 @@ char keys[ROWS][COLS] = {
   {'1','2','3'},
   {'4','5','6'},
   {'7','8','9'},
-  {'#','0','*'}
+  {'*','0','#'}
 };
 
 // Connect keypad ROW0, ROW1, ROW2 and ROW3 to these Arduino pins.
-byte rowPins[ROWS] = { 2, 3, 4, 5 };
+byte rowPins[ROWS] = { 8, 7, 6, 5 };
 
 // Connect keypad COL0, COL1 and COL2 to these Arduino pins.
-byte colPins[COLS] = { 8, 7, 6 };
+byte colPins[COLS] = { 4, 3, 2 };
 
 // Create the Keypad
-Keypad kpd = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+Keypad keyPad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
 //Route numbers are adjustable to allow infinite number of routes
 // Routes "1" through "50" are left-bound routes  // lists all left-bound routes
 // Routes "51" through "99" are right-bound routes  // lists all right-bound routes
 
-int LLBR //Last Left-Bound Routes
-int LRBR //Last Right-Bound Routes
+//int LLBR //Last Left-Bound Routes
+//int LRBR //Last Right-Bound Routes
 
 //Would it be possible to have a default LLBR & LRBR ID and sent out at start up?
-int LCDCState  = LOW;    //sets current state of LCD Backlight to Off
+int lcdBacklight = LOW;    //sets current state of LCD Backlight to Off
 long lastDebounceTime = 0;  // the last time the output pin was toggled
 
 void setup(){
   slcd.begin();   //initials LCD screen
-  slcd.noBacklight();   //Starts LCD backlight as off
-  slcd.print("Welcome");
-  delay(5000);
+  slcd.backlight();   //Starts LCD backlight as off
   // LocoNet.init()
 }
 
 void loop(){
-  if (LCDLState == LOW)
-  {
-    LCDLState = HIGH;
+  
+  char customKey = keyPad.getKey();
+  
+  if (customKey){
+    if(isNumber(customKey)){
+      slcd.backlight();
+      slcd.print(customKey);
+    }
+    else if(isClear(customKey)){
+      slcd.clear();
+    }
+    else{
+      slcd.noBacklight();
+      slcd.clear();
+    }  
   }
-  else if (LCDLState = HIGH)
-  {
-    LCDLState = LOW;
-  };
-  slcd.print("Yard Name"); //LCD screen "Yard Name" display 10 seconds
-  delay (10000);
 }
+
+boolean isNumber(char key){
+  return (key != '#' && key != '*');
+}
+
+boolean isClear(char key){
+  return (key == '*');
+}
+
+
+
 // recall the last left-bound and right-bound routes selected
 //start by setting the default LLBR & LRBR?
 //LCD screen recall and display last routes (top line left-bound, bottom line right-bound)
@@ -113,3 +128,4 @@ delay 0500
 
 setLoconetTurnout(turnout 4, Normal)
 */
+
