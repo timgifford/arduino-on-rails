@@ -1,9 +1,0 @@
-require 'rubygems'
-require 'rake/arduino'
-
-Rake::Arduino::Sketch.new do |s|
-  s.sources << "original.cpp"
-  # s.libraries << "Servo"
-  #
-  s.board = Rake::Arduino::Board["Arduino Uno"]
-end
