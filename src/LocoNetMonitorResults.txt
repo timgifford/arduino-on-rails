@@ -5,58 +5,6 @@ Plugged into Right network port on LocoShield
 OUTPUT
 =======
 LocoNet Monitor
-RX: B0 00 10 5F Switch Request: 1:Thrown - On
-RX: B0 00 00 4F Switch Request: 1:Thrown - Off
-RX: B0 00 30 7F Switch Request: 1:Closed - On
-RX: B0 00 20 6F Switch Request: 1:Closed - Off
-RX: BC 01 20 62 Switch State: 2:Closed - Off
-RX: B4 3C 50 27 RX: B0 01 10 5E Switch Request: 2:Thrown - On
-RX: B0 01 00 4E Switch Request: 2:Thrown - Off
-RX: BB 7B 00 3F 
-RX: E7 0E 7B 04 5F 7B 4F 04 42 00 00 00 00 44 
-RX: B0 01 10 5E Switch Request: 2:Thrown - On
-RX: B0 01 00 4E Switch Request: 2:Thrown - Off
-RX: B0 01 30 7E Switch Request: 2:Closed - On
-RX: B0 01 20 6E Switch Request: 2:Closed - Off
-RX: BB 7B 00 3F 
-RX: E7 0E 7B 04 1B 7A 57 04 42 00 00 00 00 19 
-RX: BB 7B 00 3F 
-RX: E7 0E 7B 04 6A 7E 5E 04 42 00 00 00 00 65 
-RX: BB 7B 00 3F 
-RX: E7 0E 7B 04 26 7D 66 04 42 00 00 00 00 12 
-RX: BB 7B 00 3F 
-RX: E7 0E 7B 04 62 7B 6E 04 42 00 00 00 00 58 
-
-
-
-
-
-=== NEXT Run on let LocoShield port
-LocoNet Monitor
-RX: B0 00 30 7F Switch Request: 1:Closed - On
-RX: B0 00 20 6F Switch Request: 1:Closed - Off
-RX: B0 00 10 5F Switch Request: 1:Thrown - On
-RX: B0 00 00 4F Switch Request: 1:Thrown - Off
-RX: B0 00 10 5F Switch Request: 1:Thrown - On
-RX: B0 00 00 4F Switch Request: 1:Thrown - Off
-RX: B0 00 30 7F Switch Request: 1:Closed - On
-RX: B0 00 20 6F Switch Request: 1:Closed - Off
-requestSwitch: 1:0 - 0
-requestSwitch: 1:0 - 0
-RX: B0 00 30 7F Switch Request: 1:Closed - On
-RX: B0 00 20 6F Switch Request: 1:Closed - Off
-RX: B0 00 10 5F Switch Request: 1:Thrown - On
-RX: B0 00 00 4F Switch Request: 1:Thrown - Off
-RX: B0 00 10 5F Switch Request: 1:Thrown - On
-RX: B0 00 00 4F Switch Request: 1:Thrown - Off
-RX: B0 00 10 5F Switch Request: 1:Thrown - On
-RX: B0 00 00 4F Switch Request: 1:Thrown - Off
-RX: B0 00 10 5F Switch Request: 1:Thrown - On
-RX: B0 00 00 4F Switch Request: 1:Thrown - Off
-RX: B0 00 10 5F Switch Request: 1:Thrown - On
-RX: B0 00 00 4F Switch Request: 1:Thrown - Off
-RX: B0 00 30 7F Switch Request: 1:Closed - On
-RX: B0 00 20 6F Switch Request: 1:Closed - Off
 RX: B0 00 30 7F Switch Request: 1:Closed - On
 RX: B0 00 20 6F Switch Request: 1:Closed - Off
 RX: B0 00 30 7F Switch Request: 1:Closed - On

@@ -22,27 +22,27 @@ char keys[ROWS][COLS] = {
 };
 
 /*
-  Wiring for Numberpad
-  /--------1--2--3
-  | /------4--5--6
-  | | /----7--8--9
-  | | | /--*--0--#
-  | | | |  |  |  |
-  | | | |  |  |  |
-  | | | |  |  |  |
-  | | | |  |  |  |
- 10 9 6 5  4  3  2 (pins)
-*/
+   Wiring for Numberpad
+   /--------1--2--3
+   | /------4--5--6
+   | | /----7--8--9
+   | | | /--*--0--#
+   | | | |  |  |  |
+   | | | |  |  |  |
+   | | | |  |  |  |
+   | | | |  |  |  |
+   10 9 6 5  4  3  2 (pins)
+   */
 
 /*
-LED Pin 11
-*/
+   LED Pin 11
+   */
 
 /* LocoNet board Wiring (http://www.scuba.net/wiki/index.php/LocoShield)
-Ground goes to Ground, Vcc goes to a source of 5v power
-TX goes to D7 on your Arduino, and
-RX goes to pin D8
-*/
+   Ground goes to Ground, Vcc goes to a source of 5v power
+   TX goes to D7 on your Arduino, and
+   RX goes to pin D8
+   */
 
 // Connect keypad Arduino pins.
 byte rowPins[ROWS] = { 10, 9, 6, 5 };
@@ -52,43 +52,83 @@ Keypad keyPad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
 void setup(){
   slcd.begin();
-  slcd.backlight();
-  
-    // First initialize the LocoNet interface
+  //  slcd.backlight();
+
+  // First initialize the LocoNet interface
   LocoNet.init();
 
   // Configure the serial port for 57600 baud
   Serial.begin(57600);
+
   Serial.println("LocoNet Monitor");
 }
 
 void loop(){
-  
-  
-  receiveLocoNetMessage();
-  
+  // Check for any received LocoNet packets
+//  LnPacket = LocoNet.receive() ;
+  if( LnPacket )
+  {    
+    // First print out the packet in HEX
+    printData("RX: ", LnPacket);
+    // If this packet was not a Switch or Sensor Message then print a new line 
+    if(!LocoNet.processSwitchSensorMessage(LnPacket))
+    {
+      Serial.println("NOT SwitchSensorMessage");
+      Serial.println();
+    }
+  }
+
   char customKey = keyPad.getKey();
-  
+
   if (customKey){
     if(isNumber(customKey)){
-      slcd.backlight();
-      slcd.print(customKey);
-      
-//      ( uint16_t Address, uint8_t Output, uint8_t Direction ) ;
-      uint16_t Address = 1;
-      uint8_t Output = 0;
-      uint8_t Direction = 0;
-      uint8_t output = 0;
+      //      slcd.backlight();
+      Serial.print("key pressed: ");
+      Serial.println(customKey);
+      slcd.println(customKey);
 
-      
-      Serial.print("requestSwitch: ");
-      Serial.print(Address);
-      Serial.print(":");
-      Serial.print(Direction);
-      Serial.print(" - ");
-      Serial.println(Output);
-      LocoNet.requestSwitch(1,0,0);
-      
+      // 1st Position: B0 = Switch Request
+      // 2nd Position: 00 = 1st switch
+      // 2nd Position: 01 = 2nd switch
+      // 3rd Position: Throw/Open/Closed
+      // 4th Position: Checksum
+
+      // RX: B0 00 10 5F Switch Request: 1:Thrown - On
+      // RX: B0 00 00 4F Switch Request: 1:Thrown - Off
+
+      // This is a single command
+      // RX: B0 00 30 7F Switch Request: 1:Closed - On
+      // RX: B0 00 20 6F Switch Request: 1:Closed - Off
+
+      // RX: B0 00 10 5F Switch Request: 1:Thrown - On
+      // RX: B0 00 00 4F Switch Request: 1:Thrown - Off
+
+      //  digitalWrite(7, LOW);
+      //  LocoNet.requestSwitch(1,32,16); // -> B0 00 30 00
+
+      // Expected: B0 00 30 7F
+      // Expected: B0 00 10 5F
+      // Actual:   B0 00 30 00
+
+      // How does this: LocoNet.requestSwitch(1,32,16);
+      // Become this: B0 00 30 7F
+
+      //  LocoNet.requestSwitch(2,32,16); // -> B0 01 30 00
+      //  LocoNet.requestSwitch(2,48,126); // -> B0 01 30 EE
+      LocoNet.requestSwitch(2,1,0); // -> B0 01 10 74
+      //  LocoNet.requestSwitch(2,48,0); // -> B0 01 10 74
+//      LocoNet.requestSwitch(2, OPC_SW_REQ_OUT, OPC_SW_REQ_DIR); // -> B0 01 30 80
+
+      // Positive numbers cause output and direction calculation:
+
+      // B0 01 30 62
+      // B0 01 30 74
+
+      // Expected: B0 01 30 7E
+      // Expected: B0 01 10 5E
+
+      //  digitalWrite(7, HIGH);
+      Serial.println("1,32,16");
     }
     else if(isClear(customKey)){
       slcd.clear();
@@ -96,8 +136,12 @@ void loop(){
     else{
       slcd.noBacklight();
       slcd.clear();
-    }  
+
+    }
   }
+  //digitalWrite(7, HIGH);
+//  Serial.print(".");
+
 }
 
 boolean isNumber(char key){
@@ -108,57 +152,63 @@ boolean isClear(char key){
   return (key == '*');
 }
 
-void receiveLocoNetMessage(){
-// Check for any received LocoNet packets
-  LnPacket = LocoNet.receive() ;
-  if( LnPacket )
+
+
+//uint8_t			prevData[16];
+
+void printData(const char msg[], lnMsg *locoMsg){
+  Serial.print(msg);
+  uint8_t msgLen = getLnMsgSize(locoMsg); 
+  for (uint8_t x = 0; x < msgLen; x++)
   {
-      // First print out the packet in HEX
-    Serial.print("RX: ");
-    uint8_t msgLen = getLnMsgSize(LnPacket); 
-    for (uint8_t x = 0; x < msgLen; x++)
-    {
-      uint8_t val = LnPacket->data[x];
-        // Print a leading 0 if less than 16 to make 2 HEX digits
-      if(val < 16)
-        Serial.print('0');
-        
-      Serial.print(val, HEX);
-      Serial.print(' ');
-    }
-    
-      // If this packet was not a Switch or Sensor Message then print a new line 
-    if(!LocoNet.processSwitchSensorMessage(LnPacket))
-      Serial.println();
+    uint8_t val = locoMsg->data[x];
+    //    prevData[x] = val;
+    // Print a leading 0 if less than 16 to make 2 HEX digits
+    if(val < 16)
+      Serial.print('0');
+
+    Serial.print(val, HEX);
+    Serial.print(' ');
   }
 }
-
-  // This call-back function is called from LocoNet.processSwitchSensorMessage
-  // for all Switch Request messages
+// This call-back function is called from LocoNet.processSwitchSensorMessage
+// for all Switch Request messages
 void notifySwitchRequest( uint16_t Address, uint8_t Output, uint8_t Direction )
 {
   Serial.print("Switch Request: ");
   Serial.print(Address, DEC);
   Serial.print(':');
+  Serial.print('[');
+  Serial.print(Direction, DEC);
+  Serial.print(']');
   Serial.print(Direction ? "Closed" : "Thrown");
   Serial.print(" - ");
+  Serial.print('[');
+  Serial.print(Output, DEC);
+  Serial.print(']');
   Serial.println(Output ? "On" : "Off");
 }
 
-  // This call-back function is called from LocoNet.processSwitchSensorMessage
-  // for all Switch Report messages
+// This call-back function is called from LocoNet.processSwitchSensorMessage
+// for all Switch Report messages
 void notifySwitchReport( uint16_t Address, uint8_t Output, uint8_t Direction )
 {
   Serial.print("Switch Report: ");
   Serial.print(Address, DEC);
   Serial.print(':');
+  Serial.print('DIR[');
+  Serial.print(Direction);
+  Serial.print(']');
   Serial.print(Direction ? "Closed" : "Thrown");
   Serial.print(" - ");
+  Serial.print('OUT[');
+  Serial.print(Output);
+  Serial.print(']');
   Serial.println(Output ? "On" : "Off");
 }
 
-  // This call-back function is called from LocoNet.processSwitchSensorMessage
-  // for all Switch State messages
+// This call-back function is called from LocoNet.processSwitchSensorMessage
+// for all Switch State messages
 void notifySwitchState( uint16_t Address, uint8_t Output, uint8_t Direction )
 {
   Serial.print("Switch State: ");
@@ -187,16 +237,16 @@ void notifySwitchState( uint16_t Address, uint8_t Output, uint8_t Direction )
 /*
 
 //debounce button inputs
-  // If the switch changed, due to noise or pressing:
-  if (reading != lastButtonState) {
-    // reset the debouncing timer
-    lastDebounceTime = millis();
-  }
+// If the switch changed, due to noise or pressing:
+if (reading != lastButtonState) {
+// reset the debouncing timer
+lastDebounceTime = millis();
+}
 
-  if ((millis() - lastDebounceTime) > debounceDelay) {
-    // whatever the reading is at, it's been there for longer
-    // than the debounce delay, so take it as the actual current state:
-    buttonState = reading;
+if ((millis() - lastDebounceTime) > debounceDelay) {
+// whatever the reading is at, it's been there for longer
+// than the debounce delay, so take it as the actual current state:
+buttonState = reading;
 
 setLoconetTurnout(turnout 1, Normal)
 
@@ -210,4 +260,6 @@ delay 0500
 
 setLoconetTurnout(turnout 4, Normal)
 */
+
+
 
